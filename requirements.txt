@@ -4,7 +4,7 @@ flask-session
 pydub==0.25.1
 SpeechRecognition==3.8.1
 python-dotenv==1.0.0
-supabase==0.7.2
+supabase==2.12.0
 openai==0.27.0
 chardet==5.1.0
 python-docx==0.8.11
