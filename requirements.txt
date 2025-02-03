@@ -1,6 +1,6 @@
 Flask==2.2.0
 flask-login==0.6.2
-flask-session==0.5.3
+flask-session
 pydub==0.25.1
 SpeechRecognition==3.8.1
 python-dotenv==1.0.0
