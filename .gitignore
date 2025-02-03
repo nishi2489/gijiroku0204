@@ -30,6 +30,6 @@ ENV/
 
 # その他
 .env
-uploads/
+
 flask_session/
 *.log
