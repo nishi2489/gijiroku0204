@@ -33,3 +33,4 @@ ENV/
 
 flask_session/
 *.log
+
