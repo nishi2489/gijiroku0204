@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- レスポンシブ対応 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI議事録作成支援</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+      font-size: 2.8rem;
+      font-weight: 700;
+    }
+
+    .description {
+      text-align: center;
+      color: #666;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+      font-size: 1.4rem;
+    }
+
+    .upload-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+      font-weight: 500;
+    }
+
+    .file-input-wrapper {
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .file-input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 2px dashed #cbd5e0;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 1.3rem;
+    }
+
+    .submit-btn {
+      background: #4299e1;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s ease;
+      width: 100%;
+      font-size: 1.4rem;
+    }
+
+    .submit-btn:hover {
+      background: #3182ce;
+    }
+
+    .file-types {
+      font-size: 1.2rem;
+      color: #718096;
+      margin-top: 0.5rem;
+    }
+
+    .divider {
+      margin: 2rem 0;
+      text-align: center;
+      color: #a0aec0;
+      font-weight: 500;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 2.4rem;
+      }
+    }
+
+    /* アニメーション効果 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .icon {
+      margin-right: 0.5rem;
+    }
+
+    /* モーダルダイアログのスタイル */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1001;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .modal-title {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: #2d3748;
+      font-weight: 600;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 1rem 1.2rem;
+      font-size: 1.4rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    .modal-button {
+      padding: 0.8rem 1.5rem;
+      font-size: 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .modal-button.primary {
+      background: #4299e1;
+      color: white;
+    }
+
+    .modal-button.secondary {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+
+    /* プログレスバーのスタイルを改善 */
+    .progress {
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        overflow: hidden;
+        width: 400px;  /* 幅を大きく */
+        height: 30px;  /* 高さを大きく */
+        margin: 20px auto;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background-color: #4299e1;
+        transition: width 0.5s ease, background-color 0.5s ease;
+        position: relative;
+    }
+    
+    /* プログレスオーバーレイのスタイルを改善 */
+    #progressOverlay {
+        display: block;  /* 常に表示領域を確保 */
+        visibility: hidden;  /* 初期状態は非表示 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        backdrop-filter: blur(3px);
+    }
+
+    #progressContent {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px 40px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        min-width: 500px;
+    }
+
+    #progressContent h3 {
+        color: #2d3748;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    #progressText {
+        font-size: 1.2rem;
+        color: #4a5568;
+        margin: 15px 0;
+    }
+
+    #estimatedTime {
+        font-size: 1.1rem;
+        color: #718096;
+        margin-top: 10px;
+    }
+
+    /* プログレスバーのアニメーションを追加 */
+    .progress-bar-animated {
+        animation: progress-bar-stripes 1s linear infinite,
+                 pulse 2s ease-in-out infinite;  /* パルスアニメーション追加 */
+    }
+
+    /* パルスアニメーション */
+    @keyframes pulse {
+        0% { opacity: 0.8; }
+        50% { opacity: 1; }
+        100% { opacity: 0.8; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI議事録作成支援</h1>
+    
+    <div class="description">
+        音声ファイルやテキストファイルから、AIを使って効率的に議事録を作成します。
+        3時間級の長大なテキストもチャンク分割で詳細な議事録を作成します。
+    </div>
+
+    <div class="button-group">
+        <a href="/minutes_list" class="list-button">議事録一覧</a>
+    </div>
+
+    <div class="upload-section">
+        <h2><i class="fas fa-microphone"></i> 音声ファイルをアップロード</h2>
+        <form id="audioForm" action="/submit_audio" method="post" enctype="multipart/form-data">
+          <div class="file-input-wrapper">
+            <input type="file" name="audioFile" class="file-input" accept="audio/*">
+            <div class="file-types">対応形式: mp3, wav など</div>
+          </div>
+          <input type="hidden" name="createName">
+          <input type="hidden" name="meetingName">
+          <button type="button" class="submit-btn" onclick="promptCreateName('audioForm')"><i class="fas fa-upload icon"></i> 音声から議事録を作成</button>
+        </form>
+    </div>
+
+    <div class="upload-section">
+        <h2><i class="fas fa-file-alt"></i> テキストファイルをアップロード</h2>
+        <form id="textForm" action="/submit_text" method="post" enctype="multipart/form-data">
+          <div class="file-input-wrapper">
+            <input type="file" name="textFile" class="file-input" accept=".txt,.doc,.docx">
+            <div class="file-types">対応形式: txt など</div>
+          </div>
+          <input type="hidden" name="createName">
+          <input type="hidden" name="meetingName">
+          <button type="button" class="submit-btn" onclick="promptCreateName('textForm')"><i class="fas fa-upload icon"></i> テキストから議事録を作成</button>
+        </form>
+    </div>
+  </div>
+
+  <!-- モーダルダイアログを追加 -->
+  <div class="modal-overlay" id="inputModal">
+    <div class="modal-dialog">
+        <div class="modal-title">会議情報の入力</div>
+        <input type="text" id="modalCreateName" class="modal-input" placeholder="作成者名">
+        <input type="text" id="modalMeetingName" class="modal-input" placeholder="会議名">
+        <div class="modal-buttons">
+            <button class="modal-button secondary" onclick="closeModal()">キャンセル</button>
+            <button class="modal-button primary" onclick="submitForm()">作成</button>
+        </div>
+    </div>
+  </div>
+
+  <!-- 既存のフォームの後に追加 -->
+  <div id="progressOverlay">
+    <div id="progressContent">
+        <h3>議事録を作成中...</h3>
+        <div class="progress">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+        </div>
+        <p id="progressText">処理中...</p>
+        <p id="estimatedTime"></p>
+        <p id="pleaseWait" style="color: #718096; font-size: 0.9rem; margin-top: 15px;">
+            ※ ブラウザを閉じずにお待ちください
+        </p>
+    </div>
+  </div>
+
+  <script>
+    let currentFormId = null;
+
+    function promptCreateName(formId) {
+        currentFormId = formId;
+        document.getElementById('inputModal').style.display = 'block';
+        document.getElementById('modalCreateName').value = '';
+        document.getElementById('modalMeetingName').value = '';
+        document.getElementById('modalCreateName').focus();
+    }
+
+    function closeModal() {
+        document.getElementById('inputModal').style.display = 'none';
+        currentFormId = null;
+    }
+
+    function submitForm() {
+        const createName = document.getElementById('modalCreateName').value.trim();
+        const meetingName = document.getElementById('modalMeetingName').value.trim();
+
+        if (!createName || !meetingName) {
+            // 未入力の項目を特定
+            if (!createName) {
+                document.getElementById('modalCreateName').style.borderColor = '#e53e3e';
+                document.getElementById('modalCreateName').focus();
+            }
+            if (!meetingName) {
+                document.getElementById('modalMeetingName').style.borderColor = '#e53e3e';
+                if (createName) {
+                    document.getElementById('modalMeetingName').focus();
+                }
+            }
+            return;
+        }
+
+        const form = document.getElementById(currentFormId);
+        form.querySelector('input[name="createName"]').value = createName;
+        form.querySelector('input[name="meetingName"]').value = meetingName;
+        
+        // 進捗モニタリングを開始（確実に表示されるようにタイミングを調整）
+        setTimeout(() => {
+            startProgressMonitoring();
+        }, 100);
+        
+        closeModal();
+        form.submit();
+    }
+
+    // 進捗モニタリング関数を外に出す
+    function startProgressMonitoring() {
+        const progressOverlay = document.getElementById('progressOverlay');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const estimatedTime = document.getElementById('estimatedTime');
+        
+        progressOverlay.style.visibility = 'visible';  // 表示切り替え
+        progressBar.style.width = '0%';  // プログレスバーをリセット
+        
+        const eventSource = new EventSource('/progress');
+        
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            // エラーメッセージがある場合の処理
+            if (data.error) {
+                progressText.textContent = "エラーが発生しました";
+                estimatedTime.textContent = "";
+                progressBar.style.backgroundColor = '#e53e3e';  // エラー時は赤色
+                eventSource.close();
+                return;
+            }
+
+            progressBar.style.width = `${data.progress}%`;
+            // 進捗状況のみ表示（エラーメッセージは表示しない）
+            if (data.current && data.total) {
+                progressText.textContent = `処理中... (${data.current}/${data.total})`;
+            }
+            estimatedTime.textContent = `残り時間: ${formatTime(data.estimated_time)}`;
+            
+            if (data.progress >= 100) {
+                progressText.textContent = "処理が完了しました。画面を更新しています...";
+                estimatedTime.textContent = "";
+                progressBar.style.backgroundColor = '#48bb78';  // 完了時は緑色
+                eventSource.close();
+            }
+        };
+        
+        eventSource.onerror = function() {
+            eventSource.close();
+            progressBar.style.backgroundColor = '#e53e3e';
+        };
+    }
+
+    function formatTime(seconds) {
+        if (seconds < 60) return `約${Math.ceil(seconds)}秒`;
+        return `約${Math.ceil(seconds/60)}分`;
+    }
+
+    // 入力フィールドのフォーカス時にエラー表示をリセット
+    document.getElementById('modalCreateName').addEventListener('focus', function() {
+        this.style.borderColor = '#e2e8f0';
+    });
+
+    document.getElementById('modalMeetingName').addEventListener('focus', function() {
+        this.style.borderColor = '#e2e8f0';
+    });
+
+    // Enterキーで送信
+    document.getElementById('modalCreateName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('modalMeetingName').focus();
+        }
+    });
+
+    document.getElementById('modalMeetingName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitForm();
+        }
+    });
+
+    // ESCキーでモーダルを閉じる
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // モーダルの外側をクリックして閉じる
+    document.querySelector('.modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // ページ遷移時にプログレスバーを非表示にする
+    window.addEventListener('beforeunload', function() {
+        const progressOverlay = document.getElementById('progressOverlay');
+        if (progressOverlay) {
+            progressOverlay.style.visibility = 'hidden';
+        }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- レスポンシブ対応 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="議事録生成結果の表示ページです">
+  <title>議事録生成結果</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    .result-text pre {
+      white-space: pre-wrap; /* テキストの折り返しを有効にする */
+      word-wrap: break-word; /* 長い単語を折り返す */
+      font-size: 1.4rem;  /* プレビューテキストをさらに大きく */
+    }
+
+    h1 {
+      font-size: 2.8rem !important;  /* タイトルをさらに大きく */
+    }
+
+    h2 {
+      font-size: 2rem !important;  /* サブタイトルをさらに大きく */
+    }
+
+    .result-text {
+      font-size: 1.4rem !important;  /* 通常テキストをさらに大きく */
+    }
+
+    .button-group a,
+    .button-group button {
+      font-size: 1.4rem;  /* ボタンのテキストをさらに大きく */
+      padding: 14px 28px;
+    }
+
+    .result-container {
+      margin-bottom: 2rem;  /* コンテナ間の余白を増やす */
+    }
+
+    .meeting-name,
+    .result-text p {
+      font-size: 1.4rem;  /* その他のテキストをさらに大きく */
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
+        gap: 1rem;
+    }
+
+    .left-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .right-buttons {
+        margin-left: auto;
+    }
+
+    .nav-button {
+        background: #64b5f6;
+        color: white;
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-size: 1.4rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .nav-button:hover {
+        background: #42a5f5;
+        transform: translateY(-1px);
+    }
+
+    .save-button {
+        background: #4caf50;
+        color: white;
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-size: 1.4rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .save-button:hover {
+        background: #43a047;
+        transform: translateY(-1px);
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+        .button-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .left-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .right-buttons {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        .nav-button, .save-button {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .result-text pre {
+          font-size: 1.2rem;
+        }
+        h1 { font-size: 2.2rem !important; }
+        h2 { font-size: 1.8rem !important; }
+    }
+
+    .error-message {
+      color: #f44336;
+      background-color: #ffebee;
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+
+    .processing-time {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+    .time-item {
+      margin: 0.5rem 0;
+      font-size: 1.2rem;
+    }
+
+    .notification-modal {
+      text-align: center;
+      background: white;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      max-width: 90%;
+      width: 500px;
+    }
+
+    .notification-content {
+        margin-bottom: 1.5rem;
+    }
+
+    .notification-button {
+        background: #4299e1;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .notification-button:hover {
+        background: #3182ce;
+        transform: translateY(-1px);
+    }
+
+    /* 追加: パス表示用のスタイル */
+    #savePath {
+      font-size: 1.2rem;
+      color: #666;
+      word-break: break-all;  /* 長いパスを適切に折り返す */
+      display: block;  /* ブロック要素として表示 */
+      margin-top: 0.5rem;
+    }
+
+    /* 追加: モーダルのオーバーレイ */
+    .notification-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 1000;
+    }
+
+    /* 追加: モーダル本体の位置調整 */
+    .notification-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1001;
+      display: none;
+    }
+
+    .save-message {
+        margin: 1.5rem 0;
+    }
+
+    .save-message h3 {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .save-location {
+        font-size: 1.2rem;
+        color: #666;
+        margin: 1rem 0 0.5rem;
+    }
+
+    .path-container {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 0.5rem 0;
+        word-break: break-all;
+        text-align: left;
+        font-family: monospace;
+        font-size: 1.1rem;
+        color: #2196F3;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>議事録生成結果</h1>
+
+    <div class="button-group">
+      <div class="left-buttons">
+        <a href="/" class="nav-button">
+          <i class="fas fa-home"></i> トップページへ戻る
+        </a>
+        <a href="/minutes_list" class="nav-button">
+          <i class="fas fa-list"></i> 議事録一覧
+        </a>
+      </div>
+      <div class="right-buttons">
+        <button onclick="saveToWord()" class="save-button" aria-label="Wordファイルとして保存">
+          <i class="fas fa-download" aria-hidden="true"></i> Word保存
+        </button>
+      </div>
+    </div>
+
+    <div class="result-container">
+      <h2>会議情報</h2>
+      <div class="result-text">
+        <div class="meeting-info">
+          <p><strong>会議名：</strong>{{ session.get('meeting_name', '未入力') }}</p>
+          <p><strong>作成者：</strong>{{ session.get('create_name', '未入力') }}</p>
+          <p><strong>作成日：</strong>{{ session.get('timestamp', '未入力') }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-container">
+      <h2>処理時間</h2>
+      <div class="processing-time">
+        {% if transcribe_time_str != 'N/A' %}
+          <div class="time-item">文字起こし時間：{{ transcribe_time_str }}</div>
+        {% endif %}
+        <div class="time-item">要約時間：{{ summary_time_str }}</div>
+        <div class="time-item">合計時間：{{ total_time_str }}</div>
+      </div>
+    </div>
+
+    <div class="result-container">
+      <h2>要約結果</h2>
+      <div class="result-text">
+        <pre>{{ minutes_result }}</pre>
+      </div>
+    </div>
+
+    <div class="result-container">
+      <h2>文字起こし結果</h2>
+      <div class="result-text">
+        <pre style="overflow-wrap: break-word; max-height: 300px; overflow-y: auto;">{{ text_result }}</pre>
+      </div>
+    </div>
+
+    <br>
+    <p style="text-align:right;font-weight:bold;">以上</p>
+    <br>
+
+  </div>
+
+  <!-- 通知モーダル -->
+  <div class="notification-overlay" id="notificationOverlay"></div>
+  <div class="notification-modal" id="notificationModal">
+      <div class="notification-content">
+        <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 3rem;"></i>
+        <div class="save-message">
+            <h3>議事録作成が完了しました。</h3>
+        </div>
+    </div>
+    <button class="notification-button" onclick="closeNotification()">OK</button>
+  </div>
+
+  <div class="loading-spinner" id="loadingSpinner" style="display: none;">
+    <div class="spinner"></div>
+  </div>
+
+  <script>
+    function showNotification() {
+        document.getElementById('notificationOverlay').style.display = 'block';
+        document.getElementById('notificationModal').style.display = 'block';
+    }
+
+    function closeNotification() {
+        document.getElementById('notificationOverlay').style.display = 'none';
+        document.getElementById('notificationModal').style.display = 'none';
+    }
+
+    window.onload = function() {
+        showNotification();
+    }
+
+    // ESCキーでモーダルを閉じる
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeNotification();
+        }
+    });
+
+    // オーバーレイクリックでモーダルを閉じる
+    document.getElementById('notificationOverlay').addEventListener('click', function() {
+        closeNotification();
+    });
+
+    async function saveToWord() {
+        try {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            // デバッグ用：要素の存在確認
+            const resultContainers = document.querySelectorAll('.result-container');
+            console.log('Result containers found:', resultContainers.length);
+            
+            // すべての要約結果を取得
+            let minutes_text = '';
+            resultContainers.forEach((container, index) => {
+                const preElement = container.querySelector('pre');
+                if (preElement) {
+                    console.log(`Found pre element in container ${index}:`, preElement.innerText);
+                    if (container.querySelector('h2')?.innerText === '要約結果') {
+                        minutes_text = preElement.innerText;
+                    }
+                }
+            });
+
+            if (!minutes_text) {
+                throw new Error('要約結果が見つかりません');
+            }
+
+            // 会議名の取得
+            const meetingInfoElement = document.querySelector('.meeting-info');
+            console.log('Meeting info element:', meetingInfoElement);
+            const meeting_name = meetingInfoElement ? 
+                meetingInfoElement.querySelector('p')?.innerText.replace('会議名：', '').trim() : 
+                '議事録';
+
+            const response = await fetch('/custom_save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: minutes_text,
+                    meeting_name: meeting_name
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                const modalContent = document.querySelector('.save-message');
+                modalContent.innerHTML = `
+                    <h3>議事録を保存しました</h3>
+                    <div class="save-location">保存場所:</div>
+                    <div class="path-container">${data.path}</div>
+                `;
+                showNotification();
+            } else {
+                throw new Error(data.error || '保存に失敗しました');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // エラーメッセージをより詳細に
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = `保存に失敗しました: ${error.message}`;
+            document.querySelector('.container').prepend(errorMessage);
+        } finally {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            font-size: 16px;
+        }
+        .container {
+            max-width: 500px;  /* 幅を広げる */
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;  /* パディングを増やす */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 2.4rem;
+            font-weight: 700;
+            text-align: left;
+            border-bottom: 3px solid #4299e1;
+            padding-bottom: 0.5rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;  /* 間隔を広げる */
+        }
+        input[type="text"], input[type="password"] {
+            padding: 1.2rem 1.5rem;  /* パディングを大きく */
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1.6rem;  /* 入力フィールドの文字をさらに大きく */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 1.2rem;  /* パディングを大きく */
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+            font-size: 1.6rem;  /* ボタンの文字をさらに大きく */
+            margin-top: 1.5rem;
+        }
+        button:hover {
+            background: #3182ce;
+        }
+        .messages {
+            color: #e53e3e;  /* エラーメッセージの色を調整 */
+            font-size: 1.5rem;  /* エラーメッセージの文字を大きく */
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            background-color: #fff5f5;
+            border-radius: 8px;
+            border: 1px solid #fed7d7;
+        }
+        .back-button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+            margin-bottom: 1rem;
+            display: inline-block;
+            font-size: 1.3rem;
+            text-decoration: none;
+        }
+        .back-button:hover {
+            background: #3182ce;
+        }
+        /* プレースホルダーのスタイル */
+        ::placeholder {
+            color: #a0aec0;
+            font-size: 1.5rem;  /* プレースホルダーの文字を大きく */
+        }
+        /* エラーメッセージのアイコン */
+        .messages p::before {
+            content: "⚠️ ";
+            font-size: 1.6rem;
+        }
+        /* 入力フィールドにフォーカスした時のスタイル */
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>ログイン</h2>
+        <form method="post" action="{{ url_for('login', next=request.args.get('next')) }}">
+            <input type="text" name="username" placeholder="メールアドレス" required autofocus>
+            <input type="password" name="password" placeholder="パスワード" required>
+            <button type="submit">ログイン</button>
+        </form>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="messages">
+            {% for message in messages %}
+              <p>{{ message }}</p>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ログイン状態をチェック
+        fetch('/check_auth')
+            .then(response => response.json())
+            .then(data => {
+                if (data.authenticated) {
+                    window.location.href = '/minutes_list';
+                }
+            })
+            .catch(error => console.error('認証チェックエラー:', error));
+    });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- レスポンシブ対応 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>昭栄グループ 議事録一覧</title>
+  <!-- style.css を読み込み -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1200px;  /* 幅を広げる */
+      width: 95%;  /* 画面幅に対する割合を設定 */
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+      cursor: pointer;
+    }
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+    }
+    .back-button:hover {
+      background-color: #0056b3;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      width: 80%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .close {
+      position: static;
+      margin-left: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: #f8f8f8;
+    }
+    .tab-content {
+      display: none;
+      padding: 15px;
+      border: 1px solid #ddd;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .tabs {
+      margin-bottom: 10px;
+    }
+    .tab-button {
+      padding: 8px 16px;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      background: #f8f8f8;
+      color: #333;
+      height: 40px;
+    }
+    .tab-button.active {
+      background: #fff;
+      border-bottom: none;
+    }
+    #topPageButton {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .tabs-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    /* コピーボタンのスタイル追加 */
+    .copy-button {
+        margin-left: 20px;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background: #f8f8f8;
+        color: #333;
+    }
+    
+    /* コピー成功時のフィードバック用 */
+    .copy-feedback {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px 20px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        border-radius: 5px;
+        z-index: 1000;
+    }
+    th {
+      white-space: nowrap; /* ヘッダーを1行で表示 */
+    }
+    .table-container {
+        overflow-x: auto;  /* 横スクロール可能に */
+        width: 100%;
+    }
+    /* テーブルの列幅を調整 */
+    th:first-child, td:first-child {
+        width: 50px;
+        min-width: 50px;
+    }
+    
+    th:nth-child(2), td:nth-child(2) { /* 会議名 */
+        min-width: 150px;
+    }
+    
+    th:nth-child(3), td:nth-child(3) { /* 作成者名 */
+        min-width: 100px;
+    }
+    
+    th:nth-child(4), td:nth-child(4) { /* 作成日 */
+        width: 100px;
+        min-width: 100px;
+    }
+    
+    th:nth-child(5), td:nth-child(5), /* 議事録 */
+    th:nth-child(6), td:nth-child(6) { /* 文字起こし */
+        min-width: 300px;
+    }
+    .save-word-button {
+      margin-left: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: #4CAF50;
+      color: white;
+    }
+    
+    .save-word-button:hover {
+      background: #45a049;
+    }
+    tr.selected {
+        background-color: #e3f2fd;
+    }
+    /* 通知モーダルの共通スタイル */
+    .notification-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        z-index: 1002;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+    }
+
+    .notification-content {
+        font-size: 1.6rem;
+        margin-bottom: 2rem;
+        color: #2d3748;
+        line-height: 1.8;
+    }
+
+    .notification-button {
+        background: #4299e1;
+        color: white;
+        border: none;
+        padding: 1.2rem 2.4rem;
+        border-radius: 8px;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+
+    .notification-button:hover {
+        background: #3182ce;
+        transform: translateY(-1px);
+    }
+
+    .notification-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1001;
+        backdrop-filter: blur(2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>昭栄グループ 議事録一覧</h1>
+    <a href="/" class="back-button">トップページへ戻る</a>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>会議名</th>
+            <th>作成者名</th>
+            <th>作成日</th>
+            <th>議事録</th>
+            <th>文字起こし</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if minutes_data %}
+            {% for row in minutes_data|reverse %}
+            <tr onclick="showDetail('{{ row.id }}')">
+              <td style="width: 50px;">{{ minutes_data|length - loop.index0 }}</td>
+              <td>{{ row.meeting_name or '未入力' }}</td>
+              <td>{{ row.create_name or '未入力' }}</td>
+              <td style="white-space: nowrap;">{{ row.timestamp[:10] }}</td>
+              <td>{{ row.minutes_result[:30] + '...' if row.minutes_result else '未作成' }}</td>
+              <td>{{ row.text_content[:30] + '...' if row.text_content else '未作成' }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="6" class="no-data">データがありません</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- モーダルウィンドウ -->
+    <div id="detailModal" class="modal">
+      <div class="modal-content">
+        <div class="tabs-container">
+          <div class="tabs">
+            <button class="tab-button active" onclick="showTab('minutes')">議事録</button>
+            <button class="tab-button" onclick="showTab('transcript')">文字起こし</button>
+          </div>
+          <button class="copy-button" onclick="copyActiveContent()">コピー</button>
+          <button class="save-word-button" onclick="saveToWord()">Word保存</button>
+          <button class="close" onclick="closeModal()">閉じる</button>
+        </div>
+        <div id="minutesContent" class="tab-content active"></div>
+        <div id="transcriptContent" class="tab-content"></div>
+      </div>
+    </div>
+
+    <!-- コピー成功時のフィードバック用div -->
+    <div id="copyFeedback" class="copy-feedback">コピーしました</div>
+
+    <!-- 通知モーダルを追加 -->
+    <div class="notification-overlay" id="notificationOverlay"></div>
+    <div class="notification-modal" id="notificationModal">
+        <div class="notification-content">
+            <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 3rem; margin-bottom: 1rem;"></i>
+            <div style="margin: 1rem 0;">
+                <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">保存が完了しました</div>
+                <div style="font-size: 1.2rem; color: #666;">
+                    以下のフォルダに保存しました：<br>
+                    <span id="savePath" style="color: #2196F3; word-break: break-all; margin-top: 0.5rem; display: inline-block;"></span>
+                </div>
+            </div>
+        </div>
+        <button class="notification-button" onclick="closeNotification()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    // 認証チェック関数を改善
+    async function checkAuthAndRedirect(path) {
+        try {
+            const response = await fetch('/check_auth');
+            const data = await response.json();
+            
+            if (!data.authenticated) {
+                window.location.href = '/login?next=' + encodeURIComponent(path);
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('認証チェックエラー:', error);
+            window.location.href = '/login';
+            return false;
+        }
+    }
+
+    // ページロード時に認証チェック
+    window.addEventListener('load', async () => {
+        await checkAuthAndRedirect(window.location.pathname);
+    });
+
+    async function showDetail(id) {
+        if (!await checkAuthAndRedirect(window.location.pathname)) return;
+        try {
+            const response = await fetch(`/minutes_detail/${id}`);
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'データの取得に失敗しました');
+            }
+
+            // 以前の選択をクリア
+            document.querySelectorAll('tr.selected').forEach(row => row.classList.remove('selected'));
+            
+            // クリックされた行を選択状態にする
+            const clickedRow = document.querySelector(`tr[onclick="showDetail('${id}')"]`);
+            if (clickedRow) {
+                clickedRow.classList.add('selected');
+            }
+
+            // 議事録とテキストコンテンツを更新
+            document.getElementById('minutesContent').innerHTML = 
+                formatText(data.minutes_result || '議事録なし');
+            document.getElementById('transcriptContent').innerHTML = 
+                formatText(data.text_content || '文字起こしなし');
+
+            // モーダルを表示
+            document.getElementById('detailModal').style.display = 'block';
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message);
+        }
+    }
+
+    function formatText(text) {
+        if (!text) return '';
+        
+        // Markdownの強調表示を反映
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // 改行を<br>タグに変換
+        return text.replace(/\n/g, '<br>');
+    }
+
+    function closeModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    function showTab(tabName) {
+        // すべてのタブコンテンツを非表示
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        // すべてのタブボタンから active クラスを削除
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => button.classList.remove('active'));
+
+        // 選択されたタブを表示
+        const selectedContent = document.getElementById(`${tabName}Content`);
+        const selectedButton = document.querySelector(`button[onclick="showTab('${tabName}')"]`);
+        
+        if (selectedContent && selectedButton) {
+            selectedContent.classList.add('active');
+            selectedButton.classList.add('active');
+        }
+    }
+
+    // モーダルの外側をクリックしたら閉じる
+    window.onclick = function(event) {
+        const modal = document.getElementById('detailModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+
+    // ESCキーでモーダルを閉じる
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // コピー機能を追加
+    async function copyActiveContent() {
+        // アクティブなタブのコンテンツを取得
+        const activeTab = document.querySelector('.tab-content.active');
+        if (!activeTab) return;
+
+        // HTML形式のテキストから純粋なテキストを取得
+        const text = activeTab.innerText;
+
+        try {
+            await navigator.clipboard.writeText(text);
+            
+            // コピー成功のフィードバックを表示
+            const feedback = document.getElementById('copyFeedback');
+            feedback.style.display = 'block';
+            
+            // 1秒後にフィードバックを非表示
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 1000);
+        } catch (err) {
+            console.error('コピーに失敗しました:', err);
+            alert('コピーに失敗しました');
+        }
+    }
+
+    async function saveToWord() {
+        if (!await checkAuthAndRedirect(window.location.pathname)) return;
+        const activeTab = document.querySelector('.tab-content.active');
+        if (!activeTab) return;
+
+        const text = activeTab.innerText;
+        
+        // 現在表示中の会議の情報を取得
+        const row = document.querySelector('tr.selected');
+        const meeting_name = row ? row.querySelector('td:nth-child(2)').textContent.trim() : '';
+        
+        try {
+            const response = await fetch('/custom_save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    text: text,
+                    meeting_name: meeting_name 
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('savePath').textContent = data.path;
+                showNotification();
+            } else {
+                throw new Error(data.error || '保存に失敗しました');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('savePath').textContent = error.message;
+            showNotification();
+        }
+    }
+
+    function showNotification() {
+        document.getElementById('notificationOverlay').style.display = 'block';
+        document.getElementById('notificationModal').style.display = 'block';
+    }
+
+    function closeNotification() {
+        document.getElementById('notificationOverlay').style.display = 'none';
+        document.getElementById('notificationModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

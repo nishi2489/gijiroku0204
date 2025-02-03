@@ -1,0 +1,482 @@
+/* 基本スタイル */
+body {
+    font-family: 'Noto Sans JP', sans-serif;  /* フォントを日本語フォントに変更 */
+    margin: 0;
+    padding: 0;
+    /* 背景色を少し明るく、グラデーションを nhẹ nhàng に */
+    background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); /* より nhẹ nhàng なグラデーション */
+    color: #333; /* テキスト色を少し濃く */
+    font-size: 16px;  /* ベースフォントサイズを大きく */
+    line-height: 1.6;  /* 行間を調整 */
+}
+
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 3rem;  /* パディングを増やして余白を確保 */
+    background-color: #fff;
+    border-radius: 16px; /* 角をより丸く */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* shadow を少し強く */
+}
+
+/* 見出しスタイルの調整 */
+h1 {
+    color: #37474f;
+    margin-bottom: 2rem;
+    font-size: 2.8rem;
+    font-weight: 700;
+    text-align: left;  /* 左揃えに変更 */
+    border-bottom: 3px solid #4299e1;  /* 下線を追加 */
+    padding-bottom: 0.5rem;
+}
+
+h2 {
+    color: #37474f;
+    margin: 2rem 0 1rem;  /* マージンを調整 */
+    font-size: 2rem;
+    font-weight: 600;
+    text-align: left;  /* 左揃えに変更 */
+}
+
+/* 説明文のスタイル調整 */
+.description {
+    text-align: left;  /* 左揃えに変更 */
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+    color: #4a5568;
+}
+
+/* アップロードセクションの調整 */
+.upload-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* ボタングループの調整 */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;  /* 画面幅が狭い時は折り返し */
+}
+
+/* 結果表示エリアの調整 */
+.result-container {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.result-text {
+    line-height: 1.8;  /* 行間を広げる */
+    margin: 1rem 0;
+}
+
+.result-text pre {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin: 0;
+}
+
+/* 処理時間表示の調整 */
+.processing-time {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.time-item {
+    padding: 0.5rem;
+    text-align: left;
+}
+
+/* テーブルスタイル */
+.table-container {
+    background: #fff;
+    border-radius: 12px; /* 角を丸く */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* shadow を調整 */
+    overflow-x: auto;
+    width: 100%; /* 幅を100%に設定 */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+th, td {
+    padding: 1.2rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px; /* セルの最大幅を設定 */
+    font-size: 1.2rem;  /* テーブルの文字を大きく */
+}
+
+td:first-child {
+    width: 50px;
+    min-width: 50px;
+}
+
+td:nth-child(4) {
+    width: 100px;
+    min-width: 100px;
+}
+
+th {
+    background-color: #f0f4f7; /* ヘッダー背景色を nhẹ nhàng に */
+    font-weight: 600;
+    color: #455a64; /* ヘッダーテキスト色を調整 */
+}
+
+td {
+    color: #555; /* データテキスト色を少し濃く */
+}
+
+tbody tr:hover {
+    background-color: #f0f4f7; /* ホバー時の背景色を nhẹ nhàng に */
+}
+
+/* セル内のコンテンツスタイル */
+.text-content, .minutes-content {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.no-data {
+    text-align: center;
+    color: #777; /* no data テキスト色を調整 */
+    padding: 2rem;
+}
+
+/* ボタン・リンクスタイル */
+a, button {
+    text-decoration: none;
+    color: #fff; /* リンクとボタンのテキスト色を白に */
+    transition: background-color 0.3s, color 0.3s; /* transition を追加 */
+    border-radius: 8px; /* 角を丸く */
+    padding: 14px 28px;  /* パディングも少し大きく */
+    font-weight: 500; /* フォントを少し太く */
+    display: inline-block; /* インラインブロック要素に */
+    line-height: 1.0; /* 行の高さを調整 */
+    text-align: center; /* テキストを中央揃え */
+    border: none; /* border を削除 */
+    font-size: 1.3rem;  /* ボタンの文字を大きく */
+}
+
+/* リンクのスタイル */
+a {
+    background-color: #64b5f6; /* リンクの背景色 */
+}
+
+a:hover {
+    background-color: #42a5f5; /* ホバー時のリンク背景色 */
+    color: #fff; /* ホバー時のリンクテキスト色を白に */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* ホバー時に shadow を追加 */
+}
+
+
+/* ボタンのスタイル */
+button {
+    background-color: #4caf50; /* ボタンの背景色を緑に */
+    color: #fff; /* ボタンのテキスト色を白に */
+}
+
+button:hover {
+    background-color: #43a047; /* ホバー時のボタン背景色 */
+    color: #fff; /* ホバー時のボタンテキスト色を白に */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* ホバー時に shadow を追加 */
+}
+
+/* ヘッダー部分のスタイルを追加 */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem; /* margin-bottom を大きく */
+    padding-bottom: 1.5rem; /* padding-bottom を追加 */
+    border-bottom: 2px solid #eee; /* 下線を追加 */
+}
+
+.header-container h1 {
+    margin: 0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem; /* padding を調整 */
+        margin: 20px auto; /* margin を調整 */
+    }
+
+    h1, h2 {
+        font-size: 1.8rem; /* フォントサイズを調整 */
+    }
+
+    button, a {
+        padding: 10px 20px; /* padding を調整 */
+        font-size: 0.9rem; /* フォントサイズを調整 */
+    }
+
+    th, td {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .text-content, .minutes-content {
+        max-width: 200px;
+    }
+
+    .header-container {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        margin-bottom: 2rem; /* margin-bottom を調整 */
+        padding-bottom: 1rem; /* padding-bottom を調整 */
+    }
+
+    .button-group {
+        flex-direction: column; /* ボタンを縦に並べる */
+        gap: 10px; /* ボタン間の gap を調整 */
+    }
+}
+
+/* モーダルダイアログのスタイル */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 1rem 1.2rem;
+    font-size: 1.4rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.modal-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.4rem;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+}
+
+.modal-button.primary {
+    background: #4299e1;
+    color: white;
+}
+
+.modal-button.secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+/* タブ関連のスタイル */
+.tabs {
+    margin-bottom: 25px; /* margin-bottom を大きく */
+    border-bottom: 2px solid #ddd; /* border を少し太く */
+}
+
+.tab-button {
+    padding: 12px 24px; /* padding を調整 */
+    margin-right: 8px; /* margin-right を調整 */
+    border: 2px solid #ddd; /* border を少し太く */
+    border-bottom: none;
+    background: #f8f8f8;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0; /* 角を丸く */
+    font-weight: 500; /* フォントを少し太く */
+    color: #555; /* 色を調整 */
+    transition: background-color 0.3s, color 0.3s; /* transition を追加 */
+}
+
+.tab-button.active {
+    background: #fff;
+    border-bottom: 3px solid #4caf50; /* アクティブ時のボーダー色を緑に */
+    color: #4caf50; /* アクティブ時のテキスト色を緑に */
+    font-weight: 700; /* アクティブ時のフォントを太く */
+}
+
+.tab-button:hover {
+    background-color: #eee; /* ホバー時の背景色 */
+}
+
+.tab-content {
+    display: none;
+    padding: 30px; /* padding を大きく */
+    background: #fff;
+    border-radius: 0 0 12px 12px; /* 角を丸く */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* shadow を追加 */
+    border: 1px solid #ddd; /* border を追加 */
+    border-top: none; /* 上の border を削除 */
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 25px; /* margin-bottom を大きく */
+}
+
+#char-count {
+    position: absolute;
+    bottom: -25px; /* 位置を調整 */
+    right: 0;
+    font-size: 0.95em; /* フォントサイズを調整 */
+    color: #777; /* 色を調整 */
+}
+
+.summary-level {
+    margin-bottom: 25px; /* margin-bottom を大きく */
+}
+
+.summary-level select {
+    padding: 10px; /* padding を調整 */
+    border-radius: 6px; /* 角を丸く */
+    border: 1px solid #ccc; /* border を調整 */
+    font-size: 1em; /* フォントサイズを調整 */
+    appearance: none; /* デフォルトのスタイルを削除 */
+    -webkit-appearance: none; /* Safari, Chrome 用 */
+    -moz-appearance: none; /* Firefox 用 */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* 下向き矢印アイコンを追加 */
+    background-repeat: no-repeat;
+    background-position-x: 100%;
+    background-position-y: 5px;
+    padding-right: 30px; /* 矢印アイコン分の padding */
+}
+
+.summary-level select::-ms-expand {
+    display: none; /* IE, Edge 用の矢印を非表示 */
+}
+
+/* 会議名を1行で表示するためのスタイル */
+.meeting-name {
+    white-space: nowrap; /* 改行を防ぐ */
+    overflow: hidden; /* はみ出た部分を隠す */
+    text-overflow: ellipsis; /* はみ出た部分を省略記号で表示 */
+}
+
+/* 通知モーダルの共通スタイル */
+.notification-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 1002;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.notification-content {
+    font-size: 1.6rem;
+    margin-bottom: 2rem;
+    color: #2d3748;
+    line-height: 1.8;
+}
+
+.notification-button {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 1.2rem 2.4rem;
+    border-radius: 8px;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.notification-button:hover {
+    background: #3182ce;
+    transform: translateY(-1px);
+}
+
+.notification-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    backdrop-filter: blur(2px);
+}
+
+/* 閉じるボタンのスタイルを追加/修正 */
+.close {
+    background-color: #f8f8f8;
+    color: #333; /* テキストカラーを黒に */
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.close:hover {
+    background-color: #e2e8f0;
+    color: #333; /* ホバー時も黒を維持 */
+}
