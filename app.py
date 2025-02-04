@@ -10,6 +10,7 @@ import re
 import json
 from queue import Queue
 from pathlib import Path
+import uuid
 
 from flask import Flask, request, render_template, session, redirect, url_for, flash, jsonify, g, Response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -444,12 +445,41 @@ def format_time(seconds):
     else:
         return f"{seconds/3600:.1f}時間"
 
+# グローバルスコープに進捗用のQueueを定義
+progress_queues = {}
+
+@app.route('/progress')
+def progress():
+    def generate():
+        # ユーザーごとにユニークなキューを作成
+        queue_id = str(uuid.uuid4())
+        progress_queues[queue_id] = Queue()
+        
+        try:
+            while True:
+                progress_data = progress_queues[queue_id].get()
+                if 'error' in progress_data:
+                    yield f"data: {json.dumps({'error': True})}\n\n"
+                    break
+                yield f"data: {json.dumps(progress_data)}\n\n"
+        except GeneratorExit:
+            # クリーンアップ
+            if queue_id in progress_queues:
+                del progress_queues[queue_id]
+        except Exception as e:
+            logging.error(f"進捗送信エラー: {e}")
+            if queue_id in progress_queues:
+                del progress_queues[queue_id]
+
+    return Response(generate(), mimetype='text/event-stream')
+
 @app.route('/submit_audio', methods=['POST'])
 @login_required
 def submit_audio():
     try:
-        if hasattr(g, 'progress_queue'):
-            g.progress_queue.put({'progress': 0})
+        # 進捗の更新（gオブジェクトは使わない）
+        for queue in progress_queues.values():
+            queue.put({'progress': 0})
 
         start_time = time.time()
 
@@ -504,12 +534,17 @@ def submit_audio():
         except Exception as e:
             logging.warning(f"Supabaseへの書き込み失敗: {e}")
 
+        # 進捗の更新
+        for queue in progress_queues.values():
+            queue.put({'progress': 100})
+
         return redirect(url_for('result'))
 
     except Exception as e:
         logging.error(f"【submit_audio エラー】 {e}")
-        if hasattr(g, 'progress_queue'):
-            g.progress_queue.put({'error': True})
+        # エラー通知
+        for queue in progress_queues.values():
+            queue.put({'error': True})
         flash(f'エラー: {str(e)}')
         return redirect(url_for('index'))
 
@@ -604,27 +639,6 @@ def result():
 def clear_session():
     session.clear()
     return redirect(url_for('index'))
-
-############################################
-# SSEで進捗を返す例
-############################################
-@app.route('/progress')
-def progress():
-    def generate():
-        progress_queue = Queue()
-        g.progress_queue = progress_queue
-        try:
-            while True:
-                progress_data = progress_queue.get()
-                if 'error' in progress_data:
-                    yield f"data: {json.dumps({'error': True})}\n\n"
-                    break
-                yield f"data: {json.dumps(progress_data)}\n\n"
-        except GeneratorExit:
-            if hasattr(g, 'progress_queue'):
-                del g.progress_queue
-
-    return Response(generate(), mimetype='text/event-stream')
 
 ############################################
 # Word保存API (例)
