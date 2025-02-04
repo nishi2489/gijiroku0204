@@ -34,8 +34,8 @@ from docx.shared import Pt
 
 # === OpenAI関連 ===
 import openai
-# from openai.error import APIError, RateLimitError
-from openai import APIError, RateLimitError
+from openai.error import APIError, RateLimitError
+# from openai import APIError, RateLimitError
 
 logging.basicConfig(
     level=logging.INFO,
